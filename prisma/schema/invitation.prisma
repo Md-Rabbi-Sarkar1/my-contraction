@@ -1,0 +1,17 @@
+model Invitation {
+  id         String           @id @default(uuid()) @db.Uuid
+  companyId  String           @map("company_id") @db.Uuid
+  email      String           @db.VarChar(255)
+  role       CompanyRole
+  tokenHash  String           @map("token_hash") @db.VarChar(255)
+  expiresAt  DateTime         @map("expires_at") @db.Timestamptz(6)
+  status     InvitationStatus @default(PENDING)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  acceptedAt DateTime?        @map("accepted_at") @db.Timestamptz(6)
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("invitations")
+}

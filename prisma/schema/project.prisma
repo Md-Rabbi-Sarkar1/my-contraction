@@ -1,0 +1,31 @@
+model Project {
+  id                 String        @id @default(uuid()) @db.Uuid
+  companyId          String        @map("company_id") @db.Uuid
+  managerId          String?       @map("manager_id") @db.Uuid
+  name               String        @db.VarChar(255)
+  description        String?
+  location           String?       @db.VarChar(255)
+  clientInfo         String?       @map("client_info")
+  startDate          DateTime?     @map("start_date") @db.Date
+  expectedEndDate    DateTime?     @map("expected_end_date") @db.Date
+  actualEndDate      DateTime?     @map("actual_end_date") @db.Date
+  budget             Decimal?      @db.Decimal(12, 2)
+  status             ProjectStatus @default(PLANNING)
+  progressPercentage Int           @default(0) @map("progress_percentage") @db.SmallInt
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  company            Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  manager            User?         @relation("ProjectManager", fields: [managerId], references: [id])
+  members            ProjectMember[]
+  tasks              Task[]
+  dailyWorkReports   DailyWorkReport[]
+  expenses           Expense[]
+  issues             Issue[]
+  documents          Document[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([companyId])
+  @@index([managerId])
+  @@index([status])
+  @@map("projects")
+}

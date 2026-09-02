@@ -1,0 +1,77 @@
+enum CompanyRole {
+  ADMIN
+  PROJECT_MANAGER
+  ENGINEER
+  WORKER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  REVIEW
+  COMPLETED
+}
+
+enum ExpenseCategory {
+  MATERIALS
+  LABOR
+  TRANSPORTATION
+  EQUIPMENT
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum IssueStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  VERIFIED
+  CLOSED
+}
+
+enum InventoryTxType {
+  PURCHASE
+  USAGE
+  ADJUSTMENT
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_DEADLINE
+  REPORT_SUBMITTED
+  ISSUE_CREATED
+  EXPENSE_PENDING
+  LOW_STOCK
+  PROJECT_ASSIGNMENT
+  DOCUMENT_UPLOADED
+  INVITATION_ACCEPTED
+}

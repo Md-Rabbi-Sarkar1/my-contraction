@@ -1,0 +1,12 @@
+model ReportWorker {
+  id          String          @id @default(uuid()) @db.Uuid
+  reportId    String          @map("report_id") @db.Uuid
+  name        String          @db.VarChar(255)
+  role        String?         @db.VarChar(255)
+  hoursWorked Decimal?        @map("hours_worked") @db.Decimal(6, 2)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  report      DailyWorkReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@map("report_workers")
+}

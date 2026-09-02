@@ -1,0 +1,28 @@
+model User {
+  id             String           @id @default(uuid()) @db.Uuid
+  companyId      String           @map("company_id") @db.Uuid
+  name           String           @db.VarChar(255)
+  email          String           @db.VarChar(255)
+  passwordHash   String           @map("password_hash") @db.VarChar(255)
+  role           CompanyRole
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  refreshTokens  RefreshToken[]
+  projectMembers ProjectMember[]
+  managedProjects Project[]       @relation("ProjectManager")
+  assignedTasks  Task[]           @relation("TaskAssignee")
+  dailyWorkReports DailyWorkReport[] @relation("ReportSubmitter")
+  reportedIssues Issue[]          @relation("IssueReporter")
+  assignedIssues  Issue[]         @relation("IssueAssignee")
+  submittedExpenses Expense[]     @relation("ExpenseSubmitter")
+  reviewedExpenses  Expense[]     @relation("ExpenseReviewer")
+  inventoryTransactions InventoryTransaction[] @relation("InventoryActor")
+  uploadedDocuments Document[]    @relation("DocumentUploader")
+  notifications  Notification[]
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@index([email])
+  @@map("users")
+}

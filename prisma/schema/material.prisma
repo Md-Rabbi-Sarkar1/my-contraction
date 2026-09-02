@@ -1,0 +1,16 @@
+model Material {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyId     String   @map("company_id") @db.Uuid
+  name          String   @db.VarChar(255)
+  unit          String   @db.VarChar(50)
+  currentStock  Decimal  @map("current_stock") @db.Decimal(12, 2) @default(0)
+  reorderLevel  Decimal  @map("reorder_level") @db.Decimal(12, 2) @default(0)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  transactions  InventoryTransaction[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("materials")
+}
