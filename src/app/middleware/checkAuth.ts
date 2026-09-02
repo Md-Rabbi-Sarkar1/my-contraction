@@ -41,7 +41,7 @@ export const auth = (...requiredRoles: CompanyRole[]) => {
             throw new Error(verifiedToken.error);
         }
 
-        const { email, name, userId, role } = verifiedToken.data as JwtPayload;
+        const { email, name, userId, role } = verifiedToken.data as JwtPayload
 
         if (requiredRoles.length && !requiredRoles.includes(role)) {
             throw new Error("Forbidden. You don't have permission to access this resource.");

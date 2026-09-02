@@ -1,5 +1,7 @@
+import { AuthProvider, CompanyRole } from "../../generated/prisma/enums";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
+import { hashPassword } from "./password";
 const COMPANY_SLUG = "demo-construction";
 const COMPANY_NAME = "Demo Construction Co.";
 const ADMIN_EMAIL = "admin@demo.local";
@@ -16,43 +18,34 @@ if(existCompany){
     console.log("Admin already exists!")
     return
 }    
-  const company = await prisma.company.upsert({
-    where: { slug: COMPANY_SLUG },
-    update: { name: COMPANY_NAME },
-    create: {
-      slug: COMPANY_SLUG,
+const passwordHash = await hashPassword(ADMIN_PASSWORD);
+  const result = await prisma.company.create({
+    data:{
       name: COMPANY_NAME,
+      slug:COMPANY_SLUG,
+      users:{
+        create:{
+          name: ADMIN_NAME,
+          email: ADMIN_EMAIL,
+          passwordHash,
+          role: CompanyRole.ADMIN,
+          authProvider: AuthProvider.CREDENTIAL,
+          emailVerified: true,
+        }
+      }
     },
-    select: { id: true },
+    select:{
+      id:true,
+      name:true,
+      users:{
+        select:{
+          id:true,
+          email:true
+        }
+      }
+    }
   });
-
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, SALT_ROUNDS);
-
-  await prisma.user.upsert({
-    where: {
-      companyId_email: {
-        companyId: company.id,
-        email: ADMIN_EMAIL,
-      },
-    },
-    update: {
-      name: ADMIN_NAME,
-      passwordHash,
-      role: "ADMIN",
-    },
-    create: {
-      companyId: company.id,
-      name: ADMIN_NAME,
-      email: ADMIN_EMAIL,
-      passwordHash,
-      role: "ADMIN",
-    },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-    },
-  });
-
+  
   console.log(`Seed complete: company "${COMPANY_SLUG}" + ADMIN "${ADMIN_EMAIL}".`);
+return result
 }

@@ -4,7 +4,16 @@ model User {
   name           String           @db.VarChar(255)
   email          String           @db.VarChar(255)
   passwordHash   String           @map("password_hash") @db.VarChar(255)
-  role           CompanyRole
+  googleId       String?          @unique
+  authProvider   AuthProvider @default(CREDENTIAL)
+  emailVerified      Boolean      @default(false)
+  status             UserStatus   @default(ACTIVE)
+  needPasswordChange Boolean      @default(false)
+  role               CompanyRole
+  imageUrl           String?       @default("")
+  imagePublicId      String?       @default("")
+  isDeleted          Boolean      @default(false)
+  deletedAt          DateTime?
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
   company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
