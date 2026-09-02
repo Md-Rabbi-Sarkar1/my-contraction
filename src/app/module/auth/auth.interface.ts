@@ -19,3 +19,8 @@ export interface IRegisterPayload {
 	}
 
 }
+
+export interface IVerifyEmailPayload {
+	email: string;
+	otp : string;
+}

@@ -6,7 +6,7 @@ import { comparePassword, hashPassword } from "../../utils/password";
 import { AppError } from "../../utils/AppError";
 import httpStatus from "http-status";
 import { googleClient } from "../../lib/googleAuth";
-import { IGoogleLoginPayload, ILoginUserPayload, IRegisterPayload } from "./auth.interface";
+import { IGoogleLoginPayload, ILoginUserPayload, IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
 import { TokenPayload } from "google-auth-library";
 import { SignOptions } from "jsonwebtoken";
 import { AuthProvider, CompanyRole, UserStatus } from "../../../generated/prisma/enums";
@@ -18,50 +18,45 @@ import { transporter } from "../../lib/nodemailer";
 const register = async (payload: IRegisterPayload) => {
 	const { companyName, slug, user : userData } = payload;
 	
-
-
 	const isUserExists = await prisma.user.findFirst({
-		where: {
-			 email:userData.email
-			},
+		where: { email: userData.email },
 	});
 
 	if (isUserExists) {
 		throw new Error("User with this email already exists");
 	}
 
-	const hashedPassword = await hashPassword(userData.paassword)
+	const hashedPassword = await hashPassword(userData.paassword);
+	const expirationSeconds = 5 * 60; // 5 minutes
 
-	const expirationSeconds = 5 * 60
-
-	const otpKey = `patient-registration-otp:${userData.email}`
+	const otpKey = `user-registration-otp:${userData.email}`;
 	const otpValue = crypto.randomInt(100000, 1000000).toString();
 
+	//  CORRECT 'redis' PACKAGE SYNTAX
 	await redisClient.set(otpKey, otpValue, {
-		expiration: {
-			type: "EX",
-			value: expirationSeconds
-		}
-	})
+		EX: expirationSeconds
+	});
 
-	const userRegistrationKey = `patient-registration-data:${userData.email}`
+	const userRegistrationKey = `user-registration-data:${userData.email}`;
+	
+	//  CRUCIAL SECURITY FIX: Save the 'hashedPassword' instead of raw text
 	const redisUserDataPayload = {
 		companyName,
 		slug,
-		password: hashedPassword,
-		user: userData
-	}
+		user: {
+			...userData,
+			paassword: hashedPassword 
+		}
+	};
 
+	//  CORRECT 'redis' PACKAGE SYNTAX
 	await redisClient.set(
 		userRegistrationKey, 
 		JSON.stringify(redisUserDataPayload), 
 		{
-			expiration: {
-				type: "EX",
-				value: expirationSeconds
-			}
+			EX: expirationSeconds
 		}
-	)
+	);
 
 	await transporter.sendMail({
 		from: config.email_sender,
@@ -69,11 +64,123 @@ const register = async (payload: IRegisterPayload) => {
 		subject: "Email Verification",
 		text : `Your OTP is ${otpValue}`,
 		html: `<h1>Your OTP is ${otpValue}</h1>`
-		
-	})
+	});
 };
 
 
+const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
+
+	const otp = payload.otp;
+	const email = payload.email.trim().toLowerCase();
+
+	const isUserExist = await prisma.user.findFirst({
+		where: { email },
+	});
+
+	if (isUserExist?.status === "BLOCKED") {
+		throw new Error("User is Blocked")
+	}
+
+	if (isUserExist?.emailVerified) {
+		throw new Error("Email ALready Verified")
+	}
+
+	if (isUserExist?.isDeleted || isUserExist?.status === "DELETED") {
+		throw new Error("User is Deleted")
+	}
+
+	const otpKey = `user-registration-otp:${email}`
+
+	const redisOtp = await redisClient.get(otpKey)
+	console.log(redisOtp)
+
+	if (!redisOtp) {
+		throw new Error("Invalid OTP")
+	}
+
+	if (redisOtp !== otp) {
+		throw new Error("OTP Does Not Match")
+	}
+
+	await redisClient.del(otpKey)
+
+	const userRegistrationKey = `user-registration-data:${email}`
+
+	const redisUserData = await redisClient.get(userRegistrationKey)
+
+	if(!redisUserData){
+		throw new Error ("User Doesnt Exist");
+	}
+
+	const userPayload : IRegisterPayload = JSON.parse(redisUserData)
+
+	const createdUser = await prisma.company.create({
+			data:{
+			  name: userPayload.companyName,
+			  slug:userPayload.slug,
+			  users:{
+				create:{
+				  name: userPayload.user.name,
+				  email: userPayload.user.email,
+				  passwordHash:userPayload.user.paassword,
+				  role: userPayload.user.role,
+				  authProvider: AuthProvider.CREDENTIAL,
+				  emailVerified: true,
+				}
+			  }
+			},
+		include: {
+			 users:{
+				omit:{
+				passwordHash:true
+			 }
+			 }
+			 },
+	});
+
+	await redisClient.del(userRegistrationKey)
+
+
+
+
+	await transporter.sendMail({
+		from: config.email_sender,
+		to: email,
+		subject: "Welcome ",
+		text : `Your successfuly registered`,
+		html: `<h1>Thankes for joining</h1>`
+		
+	})
+
+	const { users, ...company } = createdUser;
+	const adminUser = users[0];
+	const jwtPayload = {
+		userId: adminUser.id,
+		name: adminUser.name,
+		email: adminUser.email,
+		role: adminUser.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_refresh_secret,
+		config.jwt_refresh_expires_in as SignOptions,
+	);
+
+	return {
+		company,
+		users,
+		accessToken,
+		refreshToken,
+	};
+
+}
 
 const login = async(payload:ILoginUserPayload)=>{
 const {password,email} = payload;
@@ -267,6 +374,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 };
 export const AuthService = {
 	register,
+	verifyPatientEmail,
 	login,
     refreshToken,
     googleLogin
