@@ -6,7 +6,7 @@ import { comparePassword, hashPassword } from "../../utils/password";
 import { AppError } from "../../utils/AppError";
 import httpStatus from "http-status";
 import { googleClient } from "../../lib/googleAuth";
-import { IGoogleLoginPayload, ILoginUserPayload, IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
+import { IGoogleLoginPayload, ILoginUserPayload, IRegisterPayload, IRequestUser, IVerifyEmailPayload } from "./auth.interface";
 import { TokenPayload } from "google-auth-library";
 import { SignOptions } from "jsonwebtoken";
 import { AuthProvider, CompanyRole, UserStatus } from "../../../generated/prisma/enums";
@@ -372,10 +372,32 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 		refreshToken,
 	};
 };
+
+const getMe = async (user: IRequestUser) => {
+	const isUserExists = await prisma.user.findFirst({
+		where: {
+			id: user.userId,
+		},
+		include: {
+			company: true,
+		},
+		omit: {
+			passwordHash: true,
+		},
+	});
+
+	if (!isUserExists) {
+		throw new Error("User not found");
+	}
+
+	return isUserExists;
+};
+
 export const AuthService = {
 	register,
 	verifyPatientEmail,
 	login,
     refreshToken,
-    googleLogin
+    googleLogin,
+	getMe
 };
