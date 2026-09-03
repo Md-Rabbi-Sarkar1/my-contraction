@@ -140,7 +140,7 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
-		message: "New tokens generated successfully",
+		message: "successfully login with google",
 		data: {
 			accessToken,
 			refreshToken,

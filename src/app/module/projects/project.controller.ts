@@ -15,7 +15,7 @@ const create= catchAsync(async (req: Request, res: Response, next: NextFunction)
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
 		success: true,
-		message: "invite Sent",
+		message: "Successfully create project",
 		data:{result}
 	});
 });
