@@ -28,7 +28,7 @@ const acceptInvite= catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
 		success: true,
-		message: "invite Sent",
+		message: "You are now member of the company",
 		data:{companyId,userId}
 	});
 });
