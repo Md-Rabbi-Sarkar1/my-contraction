@@ -155,6 +155,7 @@ const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
 	const { users, ...company } = createdUser;
 	const adminUser = users[0];
 	const jwtPayload = {
+		conpanyId:adminUser.companyId,
 		userId: adminUser.id,
 		name: adminUser.name,
 		email: adminUser.email,
@@ -192,6 +193,7 @@ if (!isPasswordMatched) {
 		throw new AppError(httpStatus.UNAUTHORIZED,"Invalid credentials");
 	}
 const JwtPayload = {
+	companyId:user?.companyId,
     userId:user?.id,
     name:user?.name,
     email:user?.email,

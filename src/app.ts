@@ -6,6 +6,7 @@ import config from './app/config'
 import { globalErrorHandler } from './app/middleware/globalErrorHandler'
 import { notFound } from './app/middleware/notFound'
 import { AuthRoutes } from './app/module/auth/authRoute'
+import { UserRoutes } from './app/module/users/user.route'
 
 const app: Application = express()
 
@@ -24,6 +25,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth',AuthRoutes)
+app.use('/api/user',UserRoutes)
 
 // Basic route
 app.get('/', async (req: Request, res: Response) => {

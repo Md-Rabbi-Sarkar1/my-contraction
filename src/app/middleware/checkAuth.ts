@@ -15,6 +15,7 @@ declare global {
                 name: string;
                 userId: string;
                 role: CompanyRole;
+                companyId:string
             }
         }
     }
@@ -41,7 +42,7 @@ export const auth = (...requiredRoles: CompanyRole[]) => {
             throw new Error(verifiedToken.error);
         }
 
-        const { email, name, userId, role } = verifiedToken.data as JwtPayload
+        const { email, name, userId, role ,companyId } = verifiedToken.data as JwtPayload
 
         if (requiredRoles.length && !requiredRoles.includes(role)) {
             throw new Error("Forbidden. You don't have permission to access this resource.");
@@ -52,7 +53,8 @@ export const auth = (...requiredRoles: CompanyRole[]) => {
                 id: userId,
                 email,
                 name,
-                role
+                role,
+                companyId
             }
         });
 
@@ -61,6 +63,7 @@ export const auth = (...requiredRoles: CompanyRole[]) => {
         }
 
         req.user = {
+            companyId,
             email,
             name,
             userId,

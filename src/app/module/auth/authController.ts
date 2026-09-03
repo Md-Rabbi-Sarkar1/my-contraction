@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/useImportType: <explanation> */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
