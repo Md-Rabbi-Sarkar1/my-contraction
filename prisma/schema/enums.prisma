@@ -86,3 +86,10 @@ enum UserStatus {
   BLOCKED
   DELETED
 }
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  CANCELLED
+}

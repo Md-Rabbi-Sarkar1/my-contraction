@@ -6,6 +6,7 @@ model Company {
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   users       User[]
+  payments    Payment[]
   invitations Invitation[]
   projects    Project[]
   materials   Material[]

@@ -6,17 +6,17 @@ import { prisma } from "../lib/prisma";
 import { catchAsync } from "../utils/catchAsync";
 import { jwtUtils } from "../utils/jwt";
 import { CompanyRole } from "../../generated/prisma/enums";
-
+export interface RequestUser {
+    email: string;
+    name: string;
+    userId: string;
+    role: CompanyRole;
+    companyId:string
+}
 declare global {
     namespace Express {
         interface Request {
-            user?: {
-                email: string;
-                name: string;
-                userId: string;
-                role: CompanyRole;
-                companyId:string
-            }
+            user?: RequestUser
         }
     }
 }
