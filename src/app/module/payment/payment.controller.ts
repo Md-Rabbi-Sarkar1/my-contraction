@@ -17,6 +17,23 @@ const payCompany = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const paymentCallback = catchAsync(
+	async (req: Request, res: Response) => {
+		const { redirectUrl } = await PaymentServices.paymentCallback(
+			req.query,
+		);
+
+		res.redirect(redirectUrl);
+		// sendResponse(res, {
+		//     statusCode: httpStatus.OK,
+		//     success: true,
+		//     message: "User profile fetched successfully",
+		//     data: result,
+		// });
+	},
+);
+
 export const PaymentController ={
-    payCompany
+    payCompany,
+    paymentCallback
 }

@@ -9,4 +9,6 @@ import { CompanyRole } from "../../../generated/prisma/enums";
 const router = Router();
 
 router.post('/create',auth(CompanyRole.ADMIN),PaymentController.payCompany)
+router.get('/callback',PaymentController.paymentCallback)
+
 export const PaymentRouter = router;
