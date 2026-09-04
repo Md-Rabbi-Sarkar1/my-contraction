@@ -10,12 +10,17 @@ if(payload.managerId !== undefined){
             companyId: user.companyId
         },
         select:{
-            id:true
+            id:true,
+            role:true
         }
     })
           if (!manager) {
         throw new Error("Manager not found");
       }
+      if(manager.role !== "PROJECT_MANAGER"){
+        throw new Error("This provided user are not Manager")
+      }
+
 }
 
 const createProject = await prisma.project.create({

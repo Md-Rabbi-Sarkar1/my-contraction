@@ -8,9 +8,9 @@
         "build": "tsup",
         "start": "node dist/server.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "format:check" : "npx @biomejs/biome format ./src",
-        "format:fix" : "npx @biomejs/biome format --write ./src",
-        "lint:check" : "npx @biomejs/biome lint ./src",
+        "format:check": "npx @biomejs/biome format ./src",
+        "format:fix": "npx @biomejs/biome format --write ./src",
+        "lint:check": "npx @biomejs/biome lint ./src",
         "lint:fix": "npx @biomejs/biome lint --write ./src"
     },
     "keywords": [],
@@ -30,7 +30,8 @@
         "jsonwebtoken": "^9.0.3",
         "nodemailer": "^9.1.1",
         "pg": "^8.22.0",
-        "redis": "^6.2.1"
+        "redis": "^6.2.1",
+        "zod": "^4.5.4"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.11",

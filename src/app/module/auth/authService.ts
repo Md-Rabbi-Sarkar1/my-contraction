@@ -242,6 +242,7 @@ const refreshToken = async (token: string) => {
 
 
 	const jwtPayload = {
+		companyId:user?.companyId,
 		userId: user?.id,
 		name: user?.name,
 		email: user?.email,
@@ -351,6 +352,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 	}
 
 	const jwtPayload = {
+		companyId:user?.companyId,
 		userId: user.id,
 		name: user.name,
 		email: user.email,

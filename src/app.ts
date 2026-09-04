@@ -8,6 +8,7 @@ import { notFound } from './app/middleware/notFound'
 import { AuthRoutes } from './app/module/auth/authRoute'
 import { UserRoutes } from './app/module/users/user.route'
 import { ProjectRoute } from './app/module/projects/project.route'
+import { TaskRouter } from './app/module/projects/task/rask.route'
 
 const app: Application = express()
 
@@ -28,6 +29,7 @@ app.use(cookieParser())
 app.use('/api/auth',AuthRoutes)
 app.use('/api/user',UserRoutes)
 app.use('/api/projects',ProjectRoute)
+app.use('/api/tasks',TaskRouter)
 // Basic route
 app.get('/', async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
