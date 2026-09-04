@@ -1,7 +1,11 @@
 import { JwtPayload } from "jsonwebtoken"
+
 import { IcreateTaskSchema, TaskListFilters } from "./task.interface"
+
 import { prisma } from "../../../lib/prisma"
+
 import { TaskPriority, TaskStatus } from "../../../../generated/prisma/enums"
+
 
 const create = async (user: JwtPayload, projectId: string, payload: IcreateTaskSchema) => {
     console.log(user, projectId, payload)
@@ -123,7 +127,62 @@ const listall = async (user: JwtPayload, projectId: string | undefined, query: {
 
 
 }
+
+
+const transitionStatus = async (user: JwtPayload, taskId: string | undefined, status: TaskStatus) => {
+    const task = await prisma.task.findFirst({
+        where: {
+            id: taskId,
+            project: {
+                companyId: user.companyId
+            }
+        },
+        include: {
+            assignee: { select: { id: true, name: true, email: true } },
+            project: { select: { id: true, name: true, companyId: true } }
+        }
+    })
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    const project = await prisma.project.findFirst({
+        where: {
+            id: task.projectId,
+            companyId: user.companyId
+        },
+        select: {
+            id: true,
+            managerId: true
+        }
+    })
+    if (!project) {
+        throw new Error("Project not found");
+    }
+    const isAssignee = task.assigneeId === user.userId;
+    const isManager = user.role === "ADMIN" || user.role === "PROJECT_MANAGER";
+
+    if (!isManager && !isAssignee) {
+        throw new Error("You are not allowed to update this task");
+    }
+
+    const updateTask = await prisma.task.update({
+        where: {
+            id: taskId,
+
+        },
+        data: {
+            status
+        },
+        include: {
+            assignee: { select: { id: true, name: true, email: true } },
+            project: { select: { id: true, name: true, companyId: true } }
+        }
+    })
+    return updateTask
+
+}
 export const TaskService = {
     create,
-    listall
+    listall,
+    transitionStatus
 }

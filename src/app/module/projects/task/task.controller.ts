@@ -36,7 +36,27 @@ const listAll = catchAsync(async (req: Request, res: Response, next: NextFunctio
             data: { result}
         });
 });
+
+
+const transitionStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+   
+    const user = req.user
+    const {id} = req.params
+     const {status} = req.body
+
+    const result = await TaskService.transitionStatus(user as JwtPayload,id as string,status )
+
+        sendResponse(res, {
+            statusCode: httpStatus.CREATED,
+            success: true,
+            message: "Status change succefully",
+            data: { result}
+        });
+});
+
+
 export const TaskController = {
     create,
-    listAll
+    listAll,
+    transitionStatus
 }
