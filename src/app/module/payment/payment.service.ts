@@ -226,7 +226,7 @@ const paymentCallback = async (query: Record<string, any>) => {
                 },
                 data: {
                     status: PaymentStatus.FAILED,
-                    gatewayResponse: executedPaymentResult,
+                    gatewayResponse: query,
                 },
             });
             return {
@@ -239,7 +239,7 @@ const paymentCallback = async (query: Record<string, any>) => {
                 },
                 data: {
                     status: PaymentStatus.CANCELLED,
-                    gatewayResponse: executedPaymentResult,
+                    gatewayResponse: query,
                 },
             });
             return {

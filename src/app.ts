@@ -10,6 +10,7 @@ import { UserRoutes } from './app/module/users/user.route'
 import { ProjectRoute } from './app/module/projects/project.route'
 import { TaskRouter } from './app/module/projects/task/rask.route'
 import { PaymentRouter } from './app/module/payment/payment.route'
+import { NotificationRoute } from './app/module/notification/notification.route'
 
 const app: Application = express()
 
@@ -32,6 +33,8 @@ app.use('/api/user',UserRoutes)
 app.use('/api/projects',ProjectRoute)
 app.use('/api/tasks',TaskRouter)
 app.use('/api/payment',PaymentRouter)
+app.use("/api/notifications",NotificationRoute)
+
 // Basic route
 app.get('/', async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
