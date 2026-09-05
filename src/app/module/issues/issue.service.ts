@@ -1,9 +1,11 @@
 import { JwtPayload } from "jsonwebtoken"
-import { CreateIssueData, CreateIssueInput } from "./issue.interface"
+import { CreateIssueData, CreateIssueInput, UpdateIssueInput } from "./issue.interface"
 import { prisma } from "../../lib/prisma"
+import { Prisma } from "../../../generated/prisma/client"
+import { tr } from "zod/locales"
 
 const create = async (user: JwtPayload, payload: CreateIssueInput) => {
-    console.log(user,payload)
+    console.log(user, payload)
     const project = await prisma.project.findFirst({
         where: {
             id: payload.projectId,
@@ -72,6 +74,75 @@ const create = async (user: JwtPayload, payload: CreateIssueInput) => {
     return issue
 }
 
+const update = async (user: JwtPayload, id: string, payload: UpdateIssueInput) => {
+
+    const issue = await prisma.issue.findFirst({
+        where: {
+            id,
+            project: {
+                companyId: user.companyId
+            }
+        },
+        include: {
+            project: { select: { id: true, name: true } },
+            reporter: { select: { id: true, name: true, email: true } },
+            assignee: { select: { id: true, name: true, email: true } },
+        }
+    })
+
+    if (!issue) {
+        throw new Error("Issue not found");
+    }
+
+    if (payload.assigneeId !== undefined && payload.assigneeId !== null) {
+        const assignee = await prisma.user.findFirst({
+            where: { id: payload.assigneeId, companyId: user.companyId },
+            select: { id: true },
+        });
+        if (!assignee) {
+            throw new Error("Assignee not found");
+        }
+    }
+    const project = await prisma.project.findFirst({
+        where: {
+            id:issue.projectId,
+            companyId:user.companyId
+        },
+        select:{
+            id:true,
+            managerId:true
+        }
+    })
+
+  if (!project) {
+    throw new Error("Project not found");
+  }
+const updateData: Prisma.IssueUpdateInput = {};
+    if (payload.priority !== undefined) updateData.priority = payload.priority;
+    if (payload.status !== undefined) updateData.status = payload.status;
+    if (payload.resolution !== undefined) updateData.resolution = payload.resolution;
+    if (payload.location !== undefined) updateData.location = payload.location;
+    if (payload.assigneeId !== undefined) {
+        updateData.assignee = payload.assigneeId === null ? { disconnect: true } : { connect: { id: payload.assigneeId } };
+    }
+    const issueUpdate = await prisma.issue.update({
+        where: { id },
+        data: {
+           ...updateData
+        },
+        include: {
+            project: { select: { id: true, name: true } },
+            reporter: { select: { id: true, name: true, email: true } },
+            assignee: { select: { id: true, name: true, email: true } }
+        }
+    })
+  return issueUpdate
+}
+
+    
+
+
 export const IssueService = {
-    create
+    create,
+    update
 }

@@ -18,3 +18,13 @@ export interface CreateIssueData {
   location?: string;
   priority?: TaskPriority;
 }
+
+export interface UpdateIssueInput  {
+    status?: "OPEN" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "VERIFIED" | "CLOSED" | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    title?: string | undefined;
+    assigneeId?: string | null | undefined;
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT" | undefined;
+    resolution?: string | undefined;
+}
