@@ -4,7 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
 import { MeterialService } from "./material.service";
-import { CreateMaterialInput, createMaterialSchema } from "./material.validation";
+import { CreateMaterialInput, createMaterialSchema, InventoryTxInput, inventoryTxSchema } from "./material.validation";
 
 const create= catchAsync(async (req: Request, res: Response, next: NextFunction ) => {
    
@@ -21,6 +21,23 @@ const create= catchAsync(async (req: Request, res: Response, next: NextFunction 
         });
 });
 
+const recordTransaction= catchAsync(async (req: Request, res: Response, next: NextFunction ) => {
+   
+    const user = req.user
+    const {id} =req.params
+     const cleanFilters = inventoryTxSchema.parse(req.body)
+
+    const result = await MeterialService.recordTransaction(user as JwtPayload,id as string ,cleanFilters as InventoryTxInput )
+
+        sendResponse(res, {
+            statusCode: httpStatus.CREATED,
+            success: true,
+            message: "Meterial create succefully",
+            data: { result}
+        });
+});
+
 export const MeterialController ={
-    create
+    create,
+    recordTransaction
 }

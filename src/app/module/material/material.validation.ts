@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { InventoryTxType } from "../../../generated/prisma/enums";
+import { uuidSchema } from "../../validation/common";
 
 export const createMaterialSchema = z
   .object({
@@ -10,3 +12,14 @@ export const createMaterialSchema = z
   .strict();
 
 export type CreateMaterialInput = z.infer<typeof createMaterialSchema>;
+const inventoryTxTypeSchema = z.enum(InventoryTxType);
+export const inventoryTxSchema = z
+  .object({
+    type: inventoryTxTypeSchema,
+    quantity: z.coerce.number().positive("Quantity must be positive"),
+    projectId: uuidSchema.optional(),
+    note: z.string().max(2000, "Note must be at most 2000 characters").optional(),
+  })
+  .strict();
+
+export type InventoryTxInput = z.infer<typeof inventoryTxSchema>;

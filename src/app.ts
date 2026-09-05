@@ -32,10 +32,13 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth',AuthRoutes)
+
 app.use('/api/user',UserRoutes)
 app.use('/api/projects',ProjectRoute)
 app.use('/api/tasks',TaskRouter)
+
 app.use('/api/payment',PaymentRouter)
+
 app.use("/api/notifications",NotificationRoute)
 app.use('/api/issues',IssueRoute)
 app.use('/api/meterials',MeterialRoute)
@@ -44,7 +47,7 @@ app.use('/api/expense',ExpenseRoute)
 app.get('/', async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
         success: true,
-        message: 'Welcome to PH Healthcare System Backend',
+        message: 'Welcome to Contraction Provider Server',
     })
 })
 
