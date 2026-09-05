@@ -13,6 +13,7 @@ import { PaymentRouter } from './app/module/payment/payment.route'
 import { NotificationRoute } from './app/module/notification/notification.route'
 import { IssueRoute } from './app/module/issues/issue.route'
 import { MeterialRoute } from './app/module/material/material.route'
+import { ExpenseRoute } from './app/module/expense/expense.route'
 
 const app: Application = express()
 
@@ -38,6 +39,7 @@ app.use('/api/payment',PaymentRouter)
 app.use("/api/notifications",NotificationRoute)
 app.use('/api/issues',IssueRoute)
 app.use('/api/meterials',MeterialRoute)
+app.use('/api/expense',ExpenseRoute)
 // Basic route
 app.get('/', async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
