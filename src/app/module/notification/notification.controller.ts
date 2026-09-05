@@ -16,7 +16,7 @@ const list = catchAsync(async (req: Request, res: Response, next: NextFunction) 
         sendResponse(res, {
             statusCode: httpStatus.CREATED,
             success: true,
-            message: "Status change succefully",
+            message: "Notification retrive succefully",
             data: { result}
         });
 });

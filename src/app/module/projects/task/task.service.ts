@@ -22,7 +22,7 @@ const create = async (user: JwtPayload, projectId: string, payload: IcreateTaskS
     if (!project) {
         throw new Error("Project not found");
     }
-    // if (user.role === "ADMIN") return;
+
 
 
     const membership = await prisma.projectMember.findUnique({
@@ -53,7 +53,7 @@ const create = async (user: JwtPayload, projectId: string, payload: IcreateTaskS
             throw new Error("Assignee not found");
         }
     }
-    const createTask = await prisma.task.create({
+    const task = await prisma.task.create({
         data: {
             projectId,
             title: payload.title,
@@ -64,7 +64,19 @@ const create = async (user: JwtPayload, projectId: string, payload: IcreateTaskS
             assigneeId: payload.assigneeId
         }
     })
-    return createTask
+    await prisma.notification.create({
+        data:{
+            user:{
+                connect:{
+                    id:task.assigneeId as string
+                }
+            },
+            type:"TASK_ASSIGNED",
+            title:task.title,
+            message:`You were assigned to task "${task.title}" in project "${task.projectId}".`
+        }
+    })
+    return task
 }
 
 
