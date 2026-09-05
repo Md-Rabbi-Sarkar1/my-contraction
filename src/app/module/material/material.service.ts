@@ -78,7 +78,7 @@ const recordTransaction = async (user: JwtPayload, id: string, payload: Inventor
 
         const delta = data.type === "USAGE" ? -data.quantity : data.quantity;
         
-        // 1. Mutate the main material record stock
+        
         const updated = await tx.material.update({
             where: {  id },
             data: {
@@ -91,7 +91,7 @@ const recordTransaction = async (user: JwtPayload, id: string, payload: Inventor
             }
         });
 
-        // 2. Wire up structural logs connection properties
+       
         const createData: Prisma.InventoryTransactionCreateInput = {
             material: { connect: { id: data.materialId } },
             performedBy: { connect: { id: data.performedById } },
@@ -108,15 +108,15 @@ const recordTransaction = async (user: JwtPayload, id: string, payload: Inventor
             }
         });
 
-        // 3. Helper evaluation method for Reorder levels mapping
+        
         const isLowStock = (current: Prisma.Decimal, reorder: Prisma.Decimal | null) => {
             if (!reorder) return false;
             return reorder.gt(0) && current.lte(reorder);
         };
 
-        // ✅ FIXED LOGIC: Run notifications only if it IS low stock (No more empty returns)
+   
         if (isLowStock(updated.currentStock, material.reorderLevel)) {
-            // ✅ FIXED: Using tx context instead of prisma context
+            
             const managers = await tx.user.findMany({
                 where: {
                     companyId: user.companyId,
@@ -132,14 +132,13 @@ const recordTransaction = async (user: JwtPayload, id: string, payload: Inventor
                         user: { connect: { id: userId } },
                         type: "LOW_STOCK",
                         title: `Low stock: ${material.name}`,
-                        // Fixed template string typo (recorder -> reorder)
+                        
                         message: `Material "${material.name}" stock is low: ${updated.currentStock} ${material.unit} remaining (reorder level: ${material.reorderLevel}).`
                     }
                 });
             }
         }
 
-        // ✅ This return will now execute in ALL branches smoothly
         return { tx: txRecord, material: updated };
     }, {
         maxWait: 10000,
