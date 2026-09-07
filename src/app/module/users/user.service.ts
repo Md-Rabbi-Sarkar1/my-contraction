@@ -4,6 +4,9 @@ import { prisma } from "../../lib/prisma"
 import { AppError } from "../../utils/AppError"
 import { generateInviteToken, hashInviteToken } from "../../utils/invitation-token"
 import { hashPassword } from "../../utils/password"
+import { transporter } from "../../lib/nodemailer"
+import config from "../../config"
+
 const INVITATION_EXPIRY_DAYS = 7;
 
 const invite = async(user: JwtPayload,payload :InviteUserInput)=>{
@@ -32,12 +35,20 @@ const invitation = await prisma.invitation.create({
         tokenHash,
         expiresAt
     },
-    // select:{
-    //    companyId:true,
-    //    email:true,
-    //    role:true
-    // }
+    select:{
+       companyId:true,
+       email:true,
+       role:true
+    }
 })
+await transporter.sendMail({
+        from: config.email_sender,
+        to: payload.email,
+        subject: "Token Verification",
+        html: `<h1>Your Token ${tokenHash}</h1>`
+        
+    })
+
 return {
     invitation,
     token

@@ -6,10 +6,10 @@ import { UserService } from "./user.service";
 import { JwtPayload } from "jsonwebtoken";
 
 const invite= catchAsync(async (req: Request, res: Response) => {
-
+const user = req.user
 	const payload = req.body;
-	const user = req.user
-	// console.log(user)
+	
+	console.log(user)
 	const{invitation,token} =await UserService.invite(user as JwtPayload,payload);
 
 	sendResponse(res, {

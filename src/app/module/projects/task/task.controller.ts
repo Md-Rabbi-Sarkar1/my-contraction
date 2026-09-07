@@ -5,14 +5,14 @@ import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
 import { TaskService } from "./task.service";
 import { QueryTask } from "./task.interface";
-import { TaskQuerySchema } from "./task.validation";
+import { createTaskSchema, TaskQuerySchema } from "./task.validation";
 
 const create = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user
     const {id} = req.params
-    const payload = req.body;
-    
-    console.log(id)
+    const payload = createTaskSchema
+     .parse(req.body);
+
     const result = await TaskService.create(user as JwtPayload,id as string,payload)
 
         sendResponse(res, {
@@ -38,6 +38,7 @@ const listAll = catchAsync(async (req: Request, res: Response, next: NextFunctio
 });
 
 
+
 const transitionStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
    
     const user = req.user
@@ -53,10 +54,24 @@ const transitionStatus = catchAsync(async (req: Request, res: Response, next: Ne
             data: { result}
         });
 });
+const remove = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+   
+    const user = req.user
+    const {id} = req.params
 
+    const result = await TaskService.remove(user as JwtPayload,id as string, )
+
+        sendResponse(res, {
+            statusCode: httpStatus.CREATED,
+            success: true,
+            message: "Task remove succefully",
+            data: { result}
+        });
+});
 
 export const TaskController = {
     create,
     listAll,
-    transitionStatus
+    transitionStatus,
+    remove
 }

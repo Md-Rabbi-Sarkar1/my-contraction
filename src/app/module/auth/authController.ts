@@ -7,13 +7,21 @@ import httpStatus from "http-status";
 import { AuthService } from "./authService";
 import { AppError } from "../../utils/AppError";
 import { IRequestUser } from "./auth.interface";
-// import { AuthService } from "./authService";
+import { CompanyRoleSchema, registerPayloadSchema, TRegisterPayload, TVerifyEmailPayload, verifyEmailPayloadSchema } from "./auth.validation";
+
 
 const register= catchAsync(async (req: Request, res: Response) => {
 
-	const payload = req.body;
-	
-	await AuthService.register(payload);
+	const cleanFilters = registerPayloadSchema.safeParse(req.body)
+	if (!cleanFilters.success) {
+		  const errorMessage = cleanFilters.error.issues
+    .map((issue) => issue.message)
+    .join(", ");
+        throw new Error(
+          errorMessage
+        );
+      }
+	await AuthService.register(cleanFilters.data as TRegisterPayload);
 
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
@@ -25,9 +33,9 @@ const register= catchAsync(async (req: Request, res: Response) => {
 
 const verifyPatientEmail = catchAsync(async (req: Request, res: Response) => {
 
-	const payload = req.body;
+	const payload = verifyEmailPayloadSchema.parse(req.body)
 	
-	const result = await AuthService.verifyPatientEmail(payload);
+	const result = await AuthService.verifyPatientEmail(payload as TVerifyEmailPayload);
 
 	const { accessToken, refreshToken, users,company} = result;
 

@@ -32,7 +32,7 @@ const recordTransaction= catchAsync(async (req: Request, res: Response, next: Ne
         sendResponse(res, {
             statusCode: httpStatus.CREATED,
             success: true,
-            message: "Meterial create succefully",
+            message: "Meterial transactions succefully",
             data: { result}
         });
 });

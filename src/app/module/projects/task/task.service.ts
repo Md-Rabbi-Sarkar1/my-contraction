@@ -5,9 +5,10 @@ import { IcreateTaskSchema, TaskListFilters } from "./task.interface"
 import { prisma } from "../../../lib/prisma"
 
 import { TaskPriority, TaskStatus } from "../../../../generated/prisma/enums"
+import { TCreateTaskSchema } from "./task.validation"
 
 
-const create = async (user: JwtPayload, projectId: string, payload: IcreateTaskSchema) => {
+const create = async (user: JwtPayload, projectId: string, payload: TCreateTaskSchema) => {
     console.log(user, projectId, payload)
     const project = await prisma.project.findFirst({
         where: {
@@ -193,8 +194,52 @@ const transitionStatus = async (user: JwtPayload, taskId: string | undefined, st
     return updateTask
 
 }
+const remove = async (user: JwtPayload, taskId: string) => {
+    const task = await prisma.task.findFirst({
+        where: {
+            id: taskId,
+            project: {
+                companyId: user.companyId
+            }
+        },
+        include: {
+            assignee: { select: { id: true, name: true, email: true } },
+            project: { select: { id: true, name: true, companyId: true } }
+        }
+    })
+    if (!task) {
+        throw new Error("Task not found");
+    }
+    const project = await prisma.project.findFirst({
+        where: {
+            id: task.projectId,
+            companyId: user.companyId
+        },
+        select: {
+            id: true,
+            managerId: true
+        }
+    })
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    const removeTask = await prisma.task.delete({
+        where: {
+            id: taskId,
+
+        },
+        include: {
+            assignee: { select: { id: true, name: true, email: true } },
+            project: { select: { id: true, name: true, companyId: true } }
+        }
+    })
+    return removeTask
+
+}
 export const TaskService = {
     create,
     listall,
-    transitionStatus
+    transitionStatus,
+    remove
 }

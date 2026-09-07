@@ -14,8 +14,9 @@ import crypto from "crypto";
 import { redisClient } from "../../lib/redis";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
+import { TRegisterPayload, TVerifyEmailPayload } from "./auth.validation";
 
-const register = async (payload: IRegisterPayload) => {
+const register = async (payload: TRegisterPayload) => {
 	const { companyName, slug, user : userData } = payload;
 	
 	const isUserExists = await prisma.user.findFirst({
@@ -62,13 +63,12 @@ const register = async (payload: IRegisterPayload) => {
 		from: config.email_sender,
 		to: userData.email,
 		subject: "Email Verification",
-		text : `Your OTP is ${otpValue}`,
 		html: `<h1>Your OTP is ${otpValue}</h1>`
 	});
 };
 
 
-const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
+const verifyPatientEmail = async (payload : TVerifyEmailPayload) => {
 
 	const otp = payload.otp;
 	const email = payload.email.trim().toLowerCase();
@@ -92,7 +92,6 @@ const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
 	const otpKey = `user-registration-otp:${email}`
 
 	const redisOtp = await redisClient.get(otpKey)
-	console.log(redisOtp)
 
 	if (!redisOtp) {
 		throw new Error("Invalid OTP")
@@ -109,7 +108,7 @@ const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
 	const redisUserData = await redisClient.get(userRegistrationKey)
 
 	if(!redisUserData){
-		throw new Error ("User Doesnt Exist");
+		throw new Error ("User Doesn't Exist");
 	}
 
 	const userPayload : IRegisterPayload = JSON.parse(redisUserData)
@@ -147,8 +146,7 @@ const verifyPatientEmail = async (payload : IVerifyEmailPayload) => {
 		from: config.email_sender,
 		to: email,
 		subject: "Welcome ",
-		text : `Your successfuly registered`,
-		html: `<h1>Thankes for joining</h1>`
+		html: `<h1>Your successfuly registered. <br> Thankes for joining</h1>`
 		
 	})
 

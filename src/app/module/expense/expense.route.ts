@@ -5,6 +5,6 @@ import { CompanyRole } from "../../../generated/prisma/enums";
 
 const router =Router()
 
-router.post('/',auth(CompanyRole.ADMIN),ExpenseController.create)
+router.post('/',auth(CompanyRole.ADMIN,CompanyRole.PROJECT_MANAGER),ExpenseController.create)
 
 export const ExpenseRoute = router

@@ -16,6 +16,8 @@ import { MeterialRoute } from './app/module/material/material.route'
 import { ExpenseRoute } from './app/module/expense/expense.route'
 import { DocumentRoute } from './app/module/document/document.route'
 import { ReportRoute } from './app/module/report/report.route'
+import { CompnayRouter } from './app/module/company/company.route'
+// import { CompnayRouter } from './app/module/company/company.service'
 // import { ReportRoute } from './app/module/report/report.interface'
 // import { DocumentRoute } from './app/module/document/document.validation'
 
@@ -36,7 +38,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth',AuthRoutes)
-
+app.use('/api/company',CompnayRouter)
 app.use('/api/user',UserRoutes)
 app.use('/api/projects',ProjectRoute)
 app.use('/api/tasks',TaskRouter)
@@ -49,7 +51,7 @@ app.use('/api/meterials',MeterialRoute)
 app.use('/api/expense',ExpenseRoute)
 app.use('/api/documents',DocumentRoute)
 app.use('/api/reports',ReportRoute)
-// Basic route
+
 app.get('/', async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
         success: true,

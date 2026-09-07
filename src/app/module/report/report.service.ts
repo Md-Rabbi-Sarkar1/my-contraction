@@ -1,7 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
-
-import { connect } from "node:http2";
 import { CreateReportData, CreateReportPayload } from "./report.interface";
 
 const create = async (user: JwtPayload, payload: CreateReportPayload) => {
