@@ -7,48 +7,52 @@ import httpStatus from "http-status";
 import { AuthService } from "./authService";
 import { AppError } from "../../utils/AppError";
 import { IRequestUser } from "./auth.interface";
-import { CompanyRoleSchema, registerPayloadSchema, TRegisterPayload, TVerifyEmailPayload, verifyEmailPayloadSchema } from "./auth.validation";
+import {
+	CompanyRoleSchema,
+	registerPayloadSchema,
+	TRegisterPayload,
+	TVerifyEmailPayload,
+	verifyEmailPayloadSchema,
+} from "./auth.validation";
+import config from "../../config";
 
-
-const register= catchAsync(async (req: Request, res: Response) => {
-
-	const cleanFilters = registerPayloadSchema.safeParse(req.body)
+const register = catchAsync(async (req: Request, res: Response) => {
+	const cleanFilters = registerPayloadSchema.safeParse(req.body);
 	if (!cleanFilters.success) {
-		  const errorMessage = cleanFilters.error.issues
-    .map((issue) => issue.message)
-    .join(", ");
-        throw new Error(
-          errorMessage
-        );
-      }
+		const errorMessage = cleanFilters.error.issues
+			.map((issue) => issue.message)
+			.join(", ");
+		throw new Error(errorMessage);
+	}
 	await AuthService.register(cleanFilters.data as TRegisterPayload);
 
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
 		success: true,
 		message: "Verification OTP Sent",
-		data: null
+		data: null,
 	});
 });
 
-const verifyPatientEmail = catchAsync(async (req: Request, res: Response) => {
+const verifyCompanyEmail = catchAsync(async (req: Request, res: Response) => {
+	const payload = verifyEmailPayloadSchema.parse(req.body);
 
-	const payload = verifyEmailPayloadSchema.parse(req.body)
-	
-	const result = await AuthService.verifyPatientEmail(payload as TVerifyEmailPayload);
+	const result = await AuthService.verifyCompanyEmail(
+		payload as TVerifyEmailPayload,
+	);
 
-	const { accessToken, refreshToken, users,company} = result;
+	const { accessToken, refreshToken, users, company } = result;
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+		secure: config.node_env ==='development'? false : true,
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+secure: config.node_env ==='development'? false : true,
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
 
@@ -60,25 +64,22 @@ const verifyPatientEmail = catchAsync(async (req: Request, res: Response) => {
 			accessToken,
 			refreshToken,
 			users,
-			company
-		}
+			company,
+		},
 	});
 });
 
-
 const login = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body
-    const {accessToken,refreshToken} = await AuthService.login(payload)
-		res.cookie("accessToken", accessToken, {
+	const payload = req.body;
+	const { accessToken, refreshToken } = await AuthService.login(payload);
+	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+secure: config.node_env ==='development'? false : true,
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
 	sendResponse(res, {
@@ -87,29 +88,36 @@ const login = catchAsync(async (req: Request, res: Response) => {
 		message: "User logged in successfully",
 		data: {
 			accessToken,
-			refreshToken
+			refreshToken,
 		},
 	});
 });
-
+const logout = catchAsync(async (req: Request, res: Response) => {
+	res.clearCookie("accessToken"),
+	res.clearCookie("refreshToken")
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Logout successfully",
+		data: null,
+	});
+});
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
 	if (!req.cookies.refreshToken) {
-		throw new AppError(httpStatus.UNAUTHORIZED,"Refresh token is missing");
+		throw new AppError(httpStatus.UNAUTHORIZED, "Refresh token is missing");
 	}
 	const result = await AuthService.refreshToken(req.cookies.refreshToken);
 	const { accessToken, refreshToken: newRefreshToken } = result;
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+secure: config.node_env ==='development'? false : true,
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", newRefreshToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
 
@@ -124,7 +132,6 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	const payload = req.body;
 
@@ -134,14 +141,12 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+secure: config.node_env ==='development'? false : true,
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "none",
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
 
@@ -177,6 +182,7 @@ export const AuthController = {
 	login,
 	refreshToken,
 	googleLogin,
-	verifyPatientEmail,
-	getMe
+	verifyCompanyEmail,
+	getMe,
+	logout
 };

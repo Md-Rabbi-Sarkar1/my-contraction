@@ -5,10 +5,11 @@ import httpStatus from "http-status";
 import { PaymentServices } from "./payment.service";
 
 const payCompany = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
+	const {amount} = req.body;
+	// console.log(payload)
 	const user = req.user!;
 
-	const result = await PaymentServices.payCompany( user);
+	const result = await PaymentServices.payCompany(user,amount );
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
@@ -17,23 +18,19 @@ const payCompany = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-const paymentCallback = catchAsync(
-	async (req: Request, res: Response) => {
-		const { redirectUrl } = await PaymentServices.paymentCallback(
-			req.query,
-		);
+const paymentCallback = catchAsync(async (req: Request, res: Response) => {
+	const { redirectUrl } = await PaymentServices.paymentCallback(req.query);
 
-		res.redirect(redirectUrl);
-		// sendResponse(res, {
-		//     statusCode: httpStatus.OK,
-		//     success: true,
-		//     message: "User profile fetched successfully",
-		//     data: result,
-		// });
-	},
-);
+	res.redirect(redirectUrl);
+	// sendResponse(res, {
+	//     statusCode: httpStatus.OK,
+	//     success: true,
+	//     message: "User profile fetched successfully",
+	//     data: result,
+	// });
+});
 
-export const PaymentController ={
-    payCompany,
-    paymentCallback
-}
+export const PaymentController = {
+	payCompany,
+	paymentCallback,
+};

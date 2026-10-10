@@ -5,21 +5,46 @@ import httpStatus from "http-status";
 import { TeamService } from "./team.service";
 import { JwtPayload } from "jsonwebtoken";
 
-const addMember = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user
-    const {id} = req.params
-    const {userId} = req.body;
-    
-    // console.log(user)
-    const result = await TeamService.addMember(user as JwtPayload,id as string,userId)
+const addMember = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		const { id } = req.params;
+		const { userId } = req.body;
 
-        sendResponse(res, {
-            statusCode: httpStatus.CREATED,
-            success: true,
-            message: "Successfully add Member",
-            data: { result }
-        });
-});
+		const result = await TeamService.addMember(
+			user as JwtPayload,
+			id as string,
+			userId,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Successfully add Member",
+			data: { result },
+		});
+	},
+);
+const projectMember = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		const { id } = req.params;
+
+		const result = await TeamService.projectMember(
+			user as JwtPayload,
+			id as string,
+			
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Member retrive successfully",
+			data: { result },
+		});
+	},
+);
 export const TeamController = {
-    addMember
-}
+	addMember,
+	projectMember
+};

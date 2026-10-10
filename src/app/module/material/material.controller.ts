@@ -4,40 +4,94 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
 import { MeterialService } from "./material.service";
-import { CreateMaterialInput, createMaterialSchema, InventoryTxInput, inventoryTxSchema } from "./material.validation";
+import {
+	CreateMaterialInput,
+	createMaterialSchema,
+	InventoryTxInput,
+	inventoryTxSchema,
+} from "./material.validation";
 
-const create= catchAsync(async (req: Request, res: Response, next: NextFunction ) => {
-   
-    const user = req.user
-     const cleanFilters = createMaterialSchema.parse(req.body)
+const create = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		const cleanFilters = createMaterialSchema.parse(req.body);
 
-    const result = await MeterialService.create(user as JwtPayload,cleanFilters as CreateMaterialInput )
+		const result = await MeterialService.create(
+			user as JwtPayload,
+			cleanFilters as CreateMaterialInput,
+		);
 
-        sendResponse(res, {
-            statusCode: httpStatus.CREATED,
-            success: true,
-            message: "Meterial create succefully",
-            data: { result}
-        });
-});
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Meterial create succefully",
+			data: { result },
+		});
+	},
+);
 
-const recordTransaction= catchAsync(async (req: Request, res: Response, next: NextFunction ) => {
-   
-    const user = req.user
-    const {id} =req.params
-     const cleanFilters = inventoryTxSchema.parse(req.body)
+const recordTransaction = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		const { id } = req.params;
+		const cleanFilters = inventoryTxSchema.parse(req.body);
 
-    const result = await MeterialService.recordTransaction(user as JwtPayload,id as string ,cleanFilters as InventoryTxInput )
+		const result = await MeterialService.recordTransaction(
+			user as JwtPayload,
+			id as string,
+			cleanFilters as InventoryTxInput,
+		);
 
-        sendResponse(res, {
-            statusCode: httpStatus.CREATED,
-            success: true,
-            message: "Meterial transactions succefully",
-            data: { result}
-        });
-});
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Meterial transactions succefully",
+			data: { result },
+		});
+	},
+);
+const getMaterials = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		
+		
 
-export const MeterialController ={
-    create,
-    recordTransaction
-}
+		const result = await MeterialService.getMaterials(
+			user as JwtPayload,
+			
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Meterial retrive succefully",
+			data: { result },
+		});
+	},
+);
+const materialbyId = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user;
+		const {materialId} = req.params
+		
+
+		const result = await MeterialService.materialbyId(
+			user as JwtPayload,
+			materialId as string
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Meterial retrive succefully",
+			data: { result },
+		});
+	},
+);
+
+export const MeterialController = {
+	create,
+	recordTransaction,
+	getMaterials,
+	materialbyId
+};

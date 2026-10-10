@@ -10,19 +10,18 @@ export interface IGoogleLoginPayload {
 
 export interface IRegisterPayload {
 	companyName: string;
-	slug:string;
-	user:{
-		name :string;
-		email:string;
-		paassword:string;
-		role:CompanyRole;
-	}
-
+	slug: string;
+	user: {
+		name: string;
+		email: string;
+		paassword: string;
+		role: CompanyRole;
+	};
 }
 
 export interface IVerifyEmailPayload {
 	email: string;
-	otp : string;
+	otp: string;
 }
 
 export interface IRequestUser {

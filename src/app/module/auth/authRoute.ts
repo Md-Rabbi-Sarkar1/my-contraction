@@ -6,13 +6,11 @@ import { CompanyRole } from "../../../generated/prisma/enums";
 
 const router = Router();
 
-router.post('/register',AuthController.register)
-router.post('/login',AuthController.login)
-router.post('/refresh-token',AuthController.refreshToken)
+router.post("/register", AuthController.register);
+router.post("/login", AuthController.login);
+router.post("/refresh-token", AuthController.refreshToken);
 router.post("/google", AuthController.googleLogin);
-router.post("/verify-email",AuthController.verifyPatientEmail);
-router.get("/me",auth(CompanyRole.ADMIN),AuthController.getMe);
-
-	
-
+router.post("/verify-email", AuthController.verifyCompanyEmail);
+router.get("/getMe", auth(CompanyRole.ADMIN,CompanyRole.PROJECT_MANAGER,CompanyRole.ENGINEER,CompanyRole.WORKER), AuthController.getMe);
+router.post('/logout',AuthController.logout)
 export const AuthRoutes = router;

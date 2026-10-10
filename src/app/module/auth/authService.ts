@@ -6,19 +6,30 @@ import { comparePassword, hashPassword } from "../../utils/password";
 import { AppError } from "../../utils/AppError";
 import httpStatus from "http-status";
 import { googleClient } from "../../lib/googleAuth";
-import { IGoogleLoginPayload, ILoginUserPayload, IRegisterPayload, IRequestUser, IVerifyEmailPayload } from "./auth.interface";
+import {
+	IGoogleLoginPayload,
+	ILoginUserPayload,
+	IRegisterPayload,
+	IRequestUser,
+	IVerifyEmailPayload,
+} from "./auth.interface";
 import { TokenPayload } from "google-auth-library";
 import { SignOptions } from "jsonwebtoken";
-import { AuthProvider, CompanyRole, UserStatus } from "../../../generated/prisma/enums";
+import {
+	AuthProvider,
+	CompanyRole,
+	UserStatus,
+} from "../../../generated/prisma/enums";
 import crypto from "crypto";
 import { redisClient } from "../../lib/redis";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
 import { TRegisterPayload, TVerifyEmailPayload } from "./auth.validation";
+import { error } from "node:console";
 
 const register = async (payload: TRegisterPayload) => {
-	const { companyName, slug, user : userData } = payload;
-	
+	const { companyName, slug, user: userData } = payload;
+
 	const isUserExists = await prisma.user.findFirst({
 		where: { email: userData.email },
 	});
@@ -27,49 +38,50 @@ const register = async (payload: TRegisterPayload) => {
 		throw new Error("User with this email already exists");
 	}
 
-	const hashedPassword = await hashPassword(userData.paassword);
+	const hashedPassword = await hashPassword(userData.password);
 	const expirationSeconds = 5 * 60; // 5 minutes
 
 	const otpKey = `user-registration-otp:${userData.email}`;
 	const otpValue = crypto.randomInt(100000, 1000000).toString();
+	if(config.node_env === "development"){
+		console.log(`Otp: ${otpValue}`)
+	}
 
 	//  CORRECT 'redis' PACKAGE SYNTAX
 	await redisClient.set(otpKey, otpValue, {
-		EX: expirationSeconds
+		EX: expirationSeconds,
 	});
 
 	const userRegistrationKey = `user-registration-data:${userData.email}`;
-	
+
 	//  CRUCIAL SECURITY FIX: Save the 'hashedPassword' instead of raw text
 	const redisUserDataPayload = {
 		companyName,
 		slug,
 		user: {
 			...userData,
-			paassword: hashedPassword 
-		}
+			paassword: hashedPassword,
+		},
 	};
 
 	//  CORRECT 'redis' PACKAGE SYNTAX
 	await redisClient.set(
-		userRegistrationKey, 
-		JSON.stringify(redisUserDataPayload), 
+		userRegistrationKey,
+		JSON.stringify(redisUserDataPayload),
 		{
-			EX: expirationSeconds
-		}
+			EX: expirationSeconds,
+		},
 	);
 
 	await transporter.sendMail({
 		from: config.email_sender,
 		to: userData.email,
 		subject: "Email Verification",
-		html: `<h1>Your OTP is ${otpValue}</h1>`
+		html: `<h1>Your OTP is ${otpValue}</h1>`,
 	});
 };
 
-
-const verifyPatientEmail = async (payload : TVerifyEmailPayload) => {
-
+const verifyCompanyEmail = async (payload: TVerifyEmailPayload) => {
 	const otp = payload.otp;
 	const email = payload.email.trim().toLowerCase();
 
@@ -78,82 +90,78 @@ const verifyPatientEmail = async (payload : TVerifyEmailPayload) => {
 	});
 
 	if (isUserExist?.status === "BLOCKED") {
-		throw new Error("User is Blocked")
+		throw new Error("User is Blocked");
 	}
 
 	if (isUserExist?.emailVerified) {
-		throw new Error("Email ALready Verified")
+		throw new Error("Email ALready Verified");
 	}
 
 	if (isUserExist?.isDeleted || isUserExist?.status === "DELETED") {
-		throw new Error("User is Deleted")
+		throw new Error("User is Deleted");
 	}
 
-	const otpKey = `user-registration-otp:${email}`
+	const otpKey = `user-registration-otp:${email}`;
 
-	const redisOtp = await redisClient.get(otpKey)
+	const redisOtp = await redisClient.get(otpKey);
 
 	if (!redisOtp) {
-		throw new Error("Invalid OTP")
+		throw new Error("Invalid OTP");
 	}
 
 	if (redisOtp !== otp) {
-		throw new Error("OTP Does Not Match")
+		throw new Error("OTP Does Not Match");
 	}
 
-	await redisClient.del(otpKey)
+	await redisClient.del(otpKey);
 
-	const userRegistrationKey = `user-registration-data:${email}`
+	const userRegistrationKey = `user-registration-data:${email}`;
 
-	const redisUserData = await redisClient.get(userRegistrationKey)
+	const redisUserData = await redisClient.get(userRegistrationKey);
 
-	if(!redisUserData){
-		throw new Error ("User Doesn't Exist");
+	if (!redisUserData) {
+		throw new Error("User Doesn't Exist");
 	}
 
-	const userPayload : IRegisterPayload = JSON.parse(redisUserData)
+	const userPayload: IRegisterPayload = JSON.parse(redisUserData);
 
 	const createdUser = await prisma.company.create({
-			data:{
-			  name: userPayload.companyName,
-			  slug:userPayload.slug,
-			  users:{
-				create:{
-				  name: userPayload.user.name,
-				  email: userPayload.user.email,
-				  passwordHash:userPayload.user.paassword,
-				  role: userPayload.user.role,
-				  authProvider: AuthProvider.CREDENTIAL,
-				  emailVerified: true,
-				}
-			  }
+		data: {
+			name: userPayload.companyName,
+			slug: userPayload.slug,
+			users: {
+				create: {
+					name: userPayload.user.name,
+					email: userPayload.user.email,
+					passwordHash: userPayload.user.paassword,
+					role: userPayload.user.role,
+					authProvider: AuthProvider.CREDENTIAL,
+					emailVerified: true,
+				},
 			},
+		},
 		include: {
-			 users:{
-				omit:{
-				passwordHash:true
-			 }
-			 }
-			 },
+			users: {
+				omit: {
+					passwordHash: true,
+				},
+			},
+		},
 	});
 
-	await redisClient.del(userRegistrationKey)
-
-
-
+	await redisClient.del(userRegistrationKey);
 
 	await transporter.sendMail({
 		from: config.email_sender,
 		to: email,
 		subject: "Welcome ",
-		html: `<h1>Your successfuly registered. <br> Thankes for joining</h1>`
-		
-	})
+		html: `<h1>Your successfuly registered. <br> Thankes for joining</h1>`,
+	});
 
 	const { users, ...company } = createdUser;
 	const adminUser = users[0];
 	const jwtPayload = {
-		conpanyId:adminUser.companyId,
+		conpanyId: adminUser.companyId,
 		userId: adminUser.id,
 		name: adminUser.name,
 		email: adminUser.email,
@@ -178,44 +186,47 @@ const verifyPatientEmail = async (payload : TVerifyEmailPayload) => {
 		accessToken,
 		refreshToken,
 	};
+};
 
-}
-
-const login = async(payload:ILoginUserPayload)=>{
-const {password,email} = payload;
-const user = await prisma.user.findFirst({
-    where :{email}
-})
-const isPasswordMatched = await comparePassword(password,user?.passwordHash as string)
-if (!isPasswordMatched) {
-		throw new AppError(httpStatus.UNAUTHORIZED,"Invalid credentials");
+const login = async (payload: ILoginUserPayload) => {
+	const { password, email } = payload;
+	const user = await prisma.user.findFirst({
+		where: { email },
+	});
+	if(!user){
+		throw new Error("User Not found")
 	}
-const JwtPayload = {
-	companyId:user?.companyId,
-    userId:user?.id,
-    name:user?.name,
-    email:user?.email,
-    role:user?.role
-}
-const accessToken = jwtUtils.createToken(
-    JwtPayload,
-    config.jwt_access_secret,
-    config.jwt_access_expires_in as any
-)
+	const isPasswordMatched = await comparePassword(
+		password,
+		user?.passwordHash as string,
+	);
+	if (!isPasswordMatched) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+	}
+	const JwtPayload = {
+		companyId: user?.companyId,
+		userId: user?.id,
+		name: user?.name,
+		email: user?.email,
+		role: user?.role,
+	};
+	const accessToken = jwtUtils.createToken(
+		JwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as any,
+	);
 
-const refreshToken = jwtUtils.createToken(
-    JwtPayload,
-    config.jwt_refresh_secret,
+	const refreshToken = jwtUtils.createToken(
+		JwtPayload,
+		config.jwt_refresh_secret,
 		config.jwt_refresh_expires_in as any,
-)
+	);
 
-return {
-    accessToken,
-    refreshToken
-}
-
-}
-
+	return {
+		accessToken,
+		refreshToken,
+	};
+};
 
 const refreshToken = async (token: string) => {
 	const verifiedRefreshToken = jwtUtils.verifyToken(
@@ -237,10 +248,8 @@ const refreshToken = async (token: string) => {
 		where: { id: data.userId },
 	});
 
-
-
 	const jwtPayload = {
-		companyId:user?.companyId,
+		companyId: user?.companyId,
 		userId: user?.id,
 		name: user?.name,
 		email: user?.email,
@@ -330,11 +339,11 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 
 				data: {
 					googleId: googleIdTokenPayload.sub,
-					authProvider:AuthProvider.GOOGLE,
-					emailVerified:true
+					authProvider: AuthProvider.GOOGLE,
+					emailVerified: true,
 				},
 			});
-		} 
+		}
 	}
 
 	if (!user) {
@@ -350,7 +359,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 	}
 
 	const jwtPayload = {
-		companyId:user?.companyId,
+		companyId: user?.companyId,
 		userId: user.id,
 		name: user.name,
 		email: user.email,
@@ -397,9 +406,9 @@ const getMe = async (user: IRequestUser) => {
 
 export const AuthService = {
 	register,
-	verifyPatientEmail,
+	verifyCompanyEmail,
 	login,
-    refreshToken,
-    googleLogin,
-	getMe
+	refreshToken,
+	googleLogin,
+	getMe,
 };
