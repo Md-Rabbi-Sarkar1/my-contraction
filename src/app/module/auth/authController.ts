@@ -51,7 +51,7 @@ const verifyCompanyEmail = catchAsync(async (req: Request, res: Response) => {
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-secure: config.node_env ==='development'? false : true,
+        secure: config.node_env ==='development'? false : true,
 		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
@@ -75,10 +75,12 @@ const login = catchAsync(async (req: Request, res: Response) => {
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
 secure: config.node_env ==='development'? false : true,
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
+		secure: config.node_env ==='development'? false : true,
 		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
@@ -113,10 +115,12 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
 secure: config.node_env ==='development'? false : true,
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", newRefreshToken, {
 		httpOnly: true,
+		secure: config.node_env ==='development'? false : true,
 		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});
@@ -142,10 +146,12 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 	res.cookie("accessToken", accessToken, {
 		httpOnly: true,
 secure: config.node_env ==='development'? false : true,
+		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 	});
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
+		secure: config.node_env ==='development'? false : true,
 		sameSite: config.node_env==='development'?"lax": "none",
 		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 	});

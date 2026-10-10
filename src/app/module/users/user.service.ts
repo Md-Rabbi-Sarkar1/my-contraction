@@ -51,12 +51,12 @@ const invite = async (user: JwtPayload, payload: InviteUserInput) => {
   html: `
     <h1>Accept Your Invitation</h1>
     <p>You have been invited to join the team. Click the link below to accept:</p>
-    <a href="http://localhost:3000/accept-invite?token=${token}" style="display:inline-block; background:#2563eb; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">
+    <a href="${config.frontend_url}/accept-invite?token=${token}" style="display:inline-block; background:#2563eb; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">
       Accept Invitation
     </a>
     <p style="margin-top:20px; font-size:12px; color:#666;">
       If the button doesn't work, copy and paste this link: <br/>
-      http://localhost:3000/accept-invite?token=${token}
+      ${config.frontend_url}/accept-invite?token=${token}
     </p>
   `,
 });
