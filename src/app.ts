@@ -19,7 +19,7 @@ import { ReportRoute } from "./app/module/report/report.route";
 import { CompnayRouter } from "./app/module/company/company.route";
 // import { CompnayRouter } from './app/module/company/company.service'
 // import { ReportRoute } from './app/module/report/report.interface'
-// import { DocumentRoute } from './app/module/document/document.validation'
+// import { DocumentRoute } from './app/module/document/document.validation
 
 const app: Application = express();
 
